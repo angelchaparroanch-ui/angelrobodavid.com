@@ -576,7 +576,7 @@ pre.code span.ln.sel{background:#245078}
 <section id="casa" class="panel" style="--acc:var(--copper)">
   <h2><span class="ic">🏡</span>Proyectos, glosario y seguridad</h2>
   <h3>Retos para hacer en casa con un adulto</h3>
-  <details><summary>🔦 Linterna con interruptor · ⭐</summary><p><b>Materiales:</b> pila con portapilas, LED, resistencia de 220 Ω, interruptor, cables.<br><b>Idea:</b> arma en la protoboard el mismo circuito que probaste aquí y agrégale un interruptor.</p></details>
+  <details><summary>🔦 Linterna con interruptor · ⭐</summary><p><b>Materiales:</b> pila con portapilas, LED, resistencia de 220 Ω, interruptor, cables.<br><b>Idea:</b> arma en la protoboard el mismo circuito que probaste aquí y agrándole un interruptor.</p></details>
   <details><summary>🪥 Robot cepillo (bristlebot) · ⭐</summary><p><b>Materiales:</b> cabeza de cepillo de dientes, motorcito con pesa desbalanceada, pila de botón, cinta.<br><b>Idea:</b> la vibración hace que las cerdas lo empujen. ¡Hasta puedes hacer carreras!</p></details>
   <details><summary>💪 Brazo hidráulico de cartón · ⭐⭐</summary><p><b>Materiales:</b> cartón, jeringas, mangueritas, agua, pegamento.<br><b>Idea:</b> el agua transmite la fuerza de una jeringa a otra. No usa electricidad.</p></details>
   <details><summary>🚦 Semáforo con Arduino · ⭐⭐</summary><p><b>Materiales:</b> Arduino, protoboard, 3 LED (rojo, amarillo, verde), 3 resistencias, cables.<br><b>Idea:</b> ya sabes hacer parpadear uno. Usa tres pines y varios delay().</p></details>
@@ -833,413 +833,688 @@ SORT.forEach(([n,k])=>{
   ['s','p','a'].forEach(o=>{const b=mk('button',null,SN[o]);b.onclick=()=>{
     if(o===k){c.classList.add('ok');c.classList.remove('no');$('.opts',c).replaceChildren();$('.opts',c).append(mk('span',null,'✅ '+SN[k]));$('.opts',c).firstChild.style.display='inline';sortOk++;
       $('#sortMsg').className='msg good';$('#sortMsg').textContent=sortOk===SORT.length?'¡Perfecto! Clasificaste todas las piezas.':'¡Correcto! Faltan '+(SORT.length-sortOk)+'.';
-      if(sortOk===SORT.length)award('robot','¡Ya sabes cómo funciona un robot!')}
-    else{c.classList.remove('no');void c.offsetWidth;c.classList.add('no');$('#sortMsg').className='msg bad';$('#sortMsg').textContent='Casi. Piensa: '+(k==='s'?'¿esta pieza mide algo del mundo?':k==='p'?'¿esta pieza decide qué hacer?':'¿esta pieza hace algo, como moverse, sonar o brillar?')}
+      if(sortOk===SORT.length)award('robot','¡Misión de clasificación completada!');
+    }else{c.classList.add('no');setTimeout(()=>c.classList.remove('no'),400);$('#sortMsg').className='msg bad';$('#sortMsg').textContent='Mmm, esa pieza no hace eso. ¡Intenta de nuevo!'}
   };$('.opts',c).append(b)});
   $('#sortGame').append(c);
 });
 
-/* ============ ELECTRICIDAD ============ */
-const C={n:2,sw:true,res:true,burnt:false,off:0,flow:false,I:0};
-const CL=860;
-function cDrawStatic(){
-  const N=C.n,y0=125-N*10;
-  let b=`<rect x="38" y="${y0-8}" width="44" height="${N*20+6}" style="fill:var(--surface2)"/>`;
-  for(let i=0;i<N;i++){const y=y0+i*20;b+=`<line x1="42" y1="${y}" x2="78" y2="${y}" style="stroke:var(--ink)" stroke-width="6"/><line x1="50" y1="${y+10}" x2="70" y2="${y+10}" style="stroke:var(--ink)" stroke-width="6"/>`}
-  b+=`<text x="90" y="${y0+6}" font-size="16" font-weight="800" fill="#e5383b">+</text><text x="90" y="${y0+N*20+8}" font-size="16" font-weight="800" fill="#2f6fed">−</text><text x="60" y="${y0-16}" text-anchor="middle" font-size="12" font-weight="800" style="fill:var(--ink)">${es(N*1.5)} V</text>`;
-  $('#cBat').innerHTML=b;
-  $('#cRes').innerHTML=C.res
-    ?`<rect x="140" y="48" width="140" height="24" style="fill:var(--surface2)"/><rect x="165" y="50" width="90" height="20" rx="8" fill="#e6c79c" stroke="#8a6d3b" stroke-width="2"/><rect x="182" y="50" width="7" height="20" fill="#c0392b"/><rect x="197" y="50" width="7" height="20" fill="#c0392b"/><rect x="212" y="50" width="7" height="20" fill="#7b4a1e"/><rect x="236" y="50" width="6" height="20" fill="#d4a017"/><text x="210" y="92" text-anchor="middle" font-size="13" font-weight="800" style="fill:var(--ink)">220 Ω</text>`
-    :`<text x="210" y="46" text-anchor="middle" font-size="13" font-weight="800" fill="#d62839">sin resistencia</text>`;
-  const cl=C.sw;
-  $('#cSw').innerHTML=`<rect x="150" y="178" width="120" height="24" style="fill:var(--surface2)"/><circle cx="165" cy="190" r="5" style="fill:var(--ink)"/><circle cx="255" cy="190" r="5" style="fill:var(--ink)"/><line x1="165" y1="190" x2="${cl?255:243}" y2="${cl?190:158}" style="stroke:var(--ink)" stroke-width="6" stroke-linecap="round"/><text x="210" y="226" text-anchor="middle" font-size="13" font-weight="800" style="fill:var(--ink)">interruptor</text>`;
-}
-function cCalc(){
-  const V=C.n*1.5;
-  if(C.burnt)return{V,I:0,lit:false};
-  if(!C.sw)return{V,I:0,lit:false};
-  if(C.res){const I=Math.max(0,(V-2)/220*1000);return{V,I,lit:I>.3}}
-  if(V>=3){C.burnt=true;return{V,I:0,lit:false,boom:true}}
-  return{V,I:0,lit:false};
-}
-function drawC(){
-  cDrawStatic();
-  const r=cCalc();C.I=r.I;C.flow=r.I>0;
-  const br=r.lit?clamp(r.I/12,.25,1):0;
-  let led='';
-  if(C.burnt)led=`<rect x="335" y="98" width="50" height="54" style="fill:var(--surface2)"/><circle cx="360" cy="125" r="20" fill="#3b3b3b" stroke="#12263a" stroke-width="3"/><text x="360" y="132" text-anchor="middle" fill="#fff" font-size="20" font-weight="800">✖</text><text x="386" y="104" font-size="22">💨</text>`;
-  else led=`<circle cx="360" cy="125" r="52" fill="url(#cGlow)" opacity="${br}"/><rect x="338" y="102" width="44" height="48" style="fill:var(--surface2)" opacity=".0"/><circle cx="360" cy="125" r="20" fill="${r.lit?'#ff5d5d':'#8a3b3b'}" stroke="#12263a" stroke-width="3"/><text x="360" y="162" text-anchor="middle" font-size="13" font-weight="800" style="fill:var(--ink)">LED</text>`;
-  $('#cLed').innerHTML=led;
-  $('#cSwBtn').textContent='Interruptor: '+(C.sw?'cerrado':'abierto');$('#cSwBtn').setAttribute('aria-pressed',String(C.sw));
-  $('#cResBtn').textContent=C.res?'Quitar resistencia':'Poner resistencia';
-  $('#cFix').hidden=!C.burnt;
-  $$('[data-n]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.n===C.n)));
-  const V=r.V;let rd='Voltaje: '+es(V)+' V · Corriente: '+es(r.I.toFixed(1))+' mA';
-  if(C.res&&C.sw&&V>2&&!C.burnt)rd+='<br>I = (V − 2 V) ÷ 220 Ω = ('+es(V)+' − 2) ÷ 220 = '+es(r.I.toFixed(1))+' mA';
-  $('#cRead').innerHTML=rd;
-  const m=$('#cMsg');let cls='msg',txt='';
-  if(r.boom){cls+=' bad';txt='¡PUM! 💥 Sin resistencia pasó demasiada corriente y el LED se quemó. Aquí es un juego: pulsa «Cambiar LED» para seguir.';say('¡Ups! ¿Ves por qué la resistencia es su guardaespaldas?')}
-  else if(C.burnt){cls+=' bad';txt='El LED está quemado. Pulsa «Cambiar LED» y pon la resistencia antes de cerrar el interruptor.'}
-  else if(!C.sw){txt='El interruptor está abierto: el camino está cortado y no pasa corriente.'}
-  else if(C.res&&V<=2){txt='Con 1 pila (1,5 V) no alcanza: el LED necesita cerca de 2 V para encender. ¡Agrega otra pila!'}
-  else if(C.res){cls+=' good';txt='¡Se enciende! La resistencia deja pasar la cantidad justa de corriente. Con más pilas brilla más, pero siempre con resistencia.'}
-  else{txt='Con 1 pila no se quemaría, pero tampoco alcanza para encenderlo. Con más voltaje, sin resistencia, sí se quema.'}
-  m.className=cls;m.textContent=txt;
-  if(r.lit&&C.res&&r.I>=3)award('circuito','¡Encendiste un LED de forma segura!');
-}
-$('#cSwBtn').onclick=()=>{C.sw=!C.sw;drawC()};
-$('#cResBtn').onclick=()=>{C.res=!C.res;drawC()};
-$('#cFix').onclick=()=>{C.burnt=false;C.sw=false;C.res=true;drawC();say('LED nuevo. Esta vez con resistencia, ¿sí?')};
-$$('[data-n]').forEach(b=>b.onclick=()=>{C.n=+b.dataset.n;drawC()});
-const dotsG=$('#cDots'),cPath=$('#cPath');const DOTS=[];
-for(let i=0;i<16;i++){const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('r','4.5');c.setAttribute('fill','#ffc933');c.setAttribute('stroke','#12263a');c.setAttribute('stroke-width','1.2');dotsG.append(c);DOTS.push(c)}
-function cDots(dt){
-  if(!C.flow){dotsG.style.display='none';return}
-  dotsG.style.display='';C.off=(C.off+dt*(30+C.I*9))%CL;
-  DOTS.forEach((c,i)=>{const p=cPath.getPointAtLength((C.off+i*CL/DOTS.length)%CL);c.setAttribute('cx',p.x);c.setAttribute('cy',p.y)});
-}
-drawC();
-
-/* ============ PROTOBOARD ============ */
-const COLS=12,X0=84,DX=38,RT=[96,118,140,162,184],RB=[228,250,272,294,316],RP=30,RM=52;
-const holes=[],HM={};
-for(let c=0;c<COLS;c++){const x=X0+c*DX;
-  holes.push({id:'P'+c,node:'P',x,y:RP},{id:'M'+c,node:'M',x,y:RM});
-  RT.forEach((y,r)=>holes.push({id:`T${c}_${r}`,node:'T'+c,x,y}));
-  RB.forEach((y,r)=>holes.push({id:`B${c}_${r}`,node:'B'+c,x,y}));
-}
-holes.forEach(h=>HM[h.id]=h);
-(function buildBB(){
-  let s=`<rect x="20" y="8" width="546" height="334" rx="14" fill="#eae4d3" stroke="#a89f86" stroke-width="3"/><rect x="40" y="200" width="506" height="18" fill="#cfc8b2"/>`;
-  s+=`<line x1="46" y1="${RP-14}" x2="540" y2="${RP-14}" stroke="#e5383b" stroke-width="3"/><line x1="46" y1="${RM+14}" x2="540" y2="${RM+14}" stroke="#2f6fed" stroke-width="3"/>`;
-  s+=`<text x="36" y="${RP+5}" font-size="16" font-weight="800" fill="#e5383b">+</text><text x="36" y="${RM+5}" font-size="16" font-weight="800" fill="#2f6fed">−</text>`;
-  for(let c=0;c<COLS;c++)s+=`<text x="${X0+c*DX}" y="80" text-anchor="middle" font-size="12" font-weight="700" fill="#6b6553">${c+1}</text>`;
-  'abcde'.split('').forEach((l,i)=>s+=`<text x="46" y="${RT[i]+4}" text-anchor="middle" font-size="12" font-weight="700" fill="#6b6553">${l}</text>`);
-  'fghij'.split('').forEach((l,i)=>s+=`<text x="46" y="${RB[i]+4}" text-anchor="middle" font-size="12" font-weight="700" fill="#6b6553">${l}</text>`);
-  holes.forEach(h=>s+=`<circle cx="${h.x}" cy="${h.y}" r="5.5" fill="#5b5a52"/>`);
-  // metal (por dentro)
-  s+='<g id="metalG" style="display:none" opacity=".75">';
-  for(let c=0;c<COLS;c++){const x=X0+c*DX;s+=`<line x1="${x}" y1="${RT[0]}" x2="${x}" y2="${RT[4]}" stroke="#8b929a" stroke-width="9" stroke-linecap="round"/><line x1="${x}" y1="${RB[0]}" x2="${x}" y2="${RB[4]}" stroke="#8b929a" stroke-width="9" stroke-linecap="round"/>`}
-  s+=`<line x1="${X0}" y1="${RP}" x2="${X0+(COLS-1)*DX}" y2="${RP}" stroke="#e58a8c" stroke-width="9" stroke-linecap="round"/><line x1="${X0}" y1="${RM}" x2="${X0+(COLS-1)*DX}" y2="${RM}" stroke="#8fb0f5" stroke-width="9" stroke-linecap="round"/></g>`;
-  // pila
-  const bx=(X0+(COLS-1)*DX);
-  s+=`<path d="M${bx+6} ${RP} H600 V${RP+6}" fill="none" stroke="#e5383b" stroke-width="5" stroke-linejoin="round"/><path d="M${bx+6} ${RM} H612" fill="none" stroke="#2f6fed" stroke-width="5"/>`;
-  s+=`<rect x="588" y="${RP+4}" width="36" height="${RM-RP+8}" rx="4" fill="#25506f" stroke="#12263a" stroke-width="3"/><text x="606" y="${RM+22}" text-anchor="middle" font-size="12" font-weight="800" fill="#12263a">pila 3 V</text>`;
-  s+='<g id="partsG"></g><g id="marksG" style="pointer-events:none"></g><g id="hitG">';
-  holes.forEach(h=>s+=`<rect class="hit" data-h="${h.id}" x="${h.x-17}" y="${h.y-11}" width="34" height="22" rx="8"/>`);
-  s+='</g>';
-  $('#bbSvg').innerHTML=s;
-})();
-const BB={tool:'explore',pend:null,parts:[],mark:null,hint:0,lit:false};
-const WC=['#f2b705','#1a9c5b','#8e44ad','#ff7f50'];
-const bbMsg=(t,c)=>{const m=$('#bbMsg');m.className='msg'+(c?' '+c:'');m.textContent=t};
-const usedSet=()=>{const u=new Set();BB.parts.forEach(p=>{u.add(p.a.id);u.add(p.b.id)});return u};
-function ring(h,c){return `<circle class="glow" cx="${h.x}" cy="${h.y}" r="10" fill="none" stroke="${c}" stroke-width="4"/>`}
-function drawPart(p){
-  const {a,b}=p,mx=(a.x+b.x)/2,my=(a.y+b.y)/2,ang=Math.atan2(b.y-a.y,b.x-a.x)*180/Math.PI;
-  if(p.t==='wire')return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${p.color}" stroke-width="7" stroke-linecap="round"/><circle cx="${a.x}" cy="${a.y}" r="6" fill="${p.color}" stroke="#12263a" stroke-width="1.5"/><circle cx="${b.x}" cy="${b.y}" r="6" fill="${p.color}" stroke="#12263a" stroke-width="1.5"/>`;
-  if(p.t==='res')return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#8b929a" stroke-width="4" stroke-linecap="round"/><g transform="translate(${mx} ${my}) rotate(${ang})"><rect x="-17" y="-8" width="34" height="16" rx="7" fill="#e6c79c" stroke="#8a6d3b" stroke-width="2"/><rect x="-9" y="-8" width="4" height="16" fill="#c0392b"/><rect x="-2" y="-8" width="4" height="16" fill="#c0392b"/><rect x="5" y="-8" width="4" height="16" fill="#7b4a1e"/></g>`;
-  const lit=BB.lit&&!p.burnt;
-  const ux=(b.x-a.x),uy=(b.y-a.y),L=Math.hypot(ux,uy)||1;
-  return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#8b929a" stroke-width="4" stroke-linecap="round"/>`
-   +(lit?`<circle class="glow" cx="${mx}" cy="${my}" r="30" fill="#ff5d5d" opacity=".4"/>`:'')
-   +`<circle cx="${mx}" cy="${my}" r="12" fill="${p.burnt?'#3b3b3b':(lit?'#ff5d5d':'#c94a4a')}" stroke="#12263a" stroke-width="2.5"/>`
-   +`<text x="${a.x+ux/L*-0+(-14)}" y="${a.y-8}" font-size="15" font-weight="800" fill="#e5383b">+</text>`
-   +(p.burnt?`<text x="${mx+10}" y="${my-12}" font-size="18">💨</text>`:'');
-}
-function render(){
-  $('#partsG').innerHTML=BB.parts.map(drawPart).join('');
-  let m='';if(BB.pend)m+=ring(BB.pend,'#ffb703');
-  if(BB.mark)holes.filter(h=>h.node===BB.mark).forEach(h=>m+=ring(h,'#ffb703'));
-  $('#marksG').innerHTML=m;
-  $$('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===BB.tool)));
-}
-function exploreMsg(n){
-  if(n==='P')return 'Este es el riel rojo (+). Los 12 agujeros están unidos: la energía de la pila llega a todos.';
-  if(n==='M')return 'Este es el riel azul (−). Los 12 agujeros están unidos: es el camino de regreso a la pila.';
-  return 'Estos 5 agujeros están unidos por dentro (columna '+(+n.slice(1)+1)+', mitad '+(n[0]==='T'?'de arriba':'de abajo')+'). Lo que conectes aquí comparte electricidad.';
-}
-$('#bbSvg').addEventListener('click',e=>{
-  const t=e.target.closest('[data-h]');if(!t)return;const h=HM[t.dataset.h];
-  if(BB.tool==='explore'){BB.mark=h.node;BB.pend=null;bbMsg(exploreMsg(h.node));render();return}
-  if(usedSet().has(h.id)){bbMsg('Ese agujero ya tiene una pata. Elige otro. 🙂','bad');return}
-  if(!BB.pend){BB.pend=h;bbMsg(BB.tool==='led'?'Ahí quedó la pata larga (+) del LED. Ahora toca donde irá la pata corta (−).':'Muy bien. Ahora toca el otro extremo.');render();return}
-  if(BB.pend.id===h.id){BB.pend=null;bbMsg('Cancelado.');render();return}
-  const a=BB.pend,b=h;
-  if(a.node===b.node){BB.pend=null;bbMsg('¡Cuidado! Esos dos agujeros ya están unidos por dentro, así que la pieza no serviría de nada. Prueba en otra columna.','bad');render();return}
-  const p={t:BB.tool,a,b};
-  if(p.t==='wire')p.color=(a.node==='P'||b.node==='P')?'#e5383b':(a.node==='M'||b.node==='M')?'#2f6fed':WC[BB.parts.filter(x=>x.t==='wire').length%WC.length];
-  BB.parts.push(p);BB.pend=null;BB.lit=false;BB.mark=null;bbMsg('¡Pieza colocada! Cuando termines, pulsa Probar circuito.');render();
-});
-$$('[data-tool]').forEach(b=>b.onclick=()=>{BB.tool=b.dataset.tool;BB.pend=null;BB.mark=null;const t={explore:'Toca un agujero y verás cuáles están unidos por dentro.',wire:'Cable: toca dos agujeros para unirlos.',res:'Resistencia: toca dos agujeros, uno para cada extremo.',led:'LED: toca primero donde irá la pata larga (+) y luego la pata corta (−).'};bbMsg(t[BB.tool]);render()});
-$('#bbUndo').onclick=()=>{BB.parts.pop();BB.pend=null;BB.lit=false;bbMsg('Quité la última pieza.');render()};
-$('#bbClear').onclick=()=>{BB.parts=[];BB.pend=null;BB.lit=false;BB.mark=null;bbMsg('Protoboard limpia. ¡A empezar de nuevo!');render()};
-$('#bbMetal').onchange=e=>{$('#metalG').style.display=e.target.checked?'block':'none'};
-const HINTS=['Pista 1: elige ➖ Cable. Une el riel rojo (+) con la columna 1 de arriba (cualquier fila).','Pista 2: pon la 🟫 Resistencia desde esa columna 1 hasta la columna 3, también arriba.','Pista 3: pon el 💡 LED. Toca la columna 3 de arriba (otra fila) para la pata larga (+) y la columna 3 de abajo, cruzando el canal, para la pata corta (−).','Pista 4: con otro ➖ Cable, une la columna 3 de abajo con el riel azul (−). ¡Y pulsa Probar!'];
-$('#bbHint').onclick=()=>{bbMsg(HINTS[BB.hint%HINTS.length]);BB.hint++};
-function findPaths(edges,allowRev){
-  const res=[];
-  (function dfs(n,vis,used){
-    if(n==='M'){res.push(used.slice());return}
-    for(const e of edges){
-      if(used.includes(e))continue;
-      let to=null;
-      if(e.a===n)to=e.b;
-      else if(e.b===n){if(e.t==='led'&&!allowRev)continue;to=e.a}
-      if(to===null||vis.has(to))continue;
-      vis.add(to);used.push(e);dfs(to,vis,used);used.pop();vis.delete(to);
-    }
-  })('P',new Set(['P']),[]);
-  return res;
-}
-$('#bbTest').onclick=()=>{
-  const edges=BB.parts.map(p=>({t:p.t,a:p.a.node,b:p.b.node,p}));
-  if(!edges.length){bbMsg('Aún no hay piezas. Empieza con un cable rojo desde el riel +.');return}
-  const fw=findPaths(edges,false),withLed=fw.find(pt=>pt.some(e=>e.t==='led'));
-  if(withLed){
-    const leds=withLed.filter(e=>e.t==='led'),hasRes=withLed.some(e=>e.t==='res');
-    if(leds.some(e=>e.p.burnt)){bbMsg('Ese LED ya se quemó. Quítalo con «Quitar última» y pon uno nuevo.','bad');return}
-    if(!hasRes){leds.forEach(e=>e.p.burnt=true);BB.lit=false;render();bbMsg('¡PUM! 💥 Al LED le faltó la resistencia y se quemó. Quítalo con «Quitar última», agrega una resistencia y prueba otra vez.','bad');say('¡Sin resistencia el LED se quema! Sigue intentando.');return}
-    BB.lit=true;render();bbMsg('¡Funciona! 🎉 La corriente sale del riel +, pasa por la resistencia, enciende el LED y regresa al riel −.','good');award('protoboard','¡Armaste tu primer circuito en la protoboard!');return;
+/* ============ CIRCUITO ============ */
+const C={sw:true,bats:2,res:true,burned:false};
+function cDraw(){
+  const svg=$('#cSvg');
+  const batX=130,batY=190,resX=210,resY=60,ledX=360,ledY=125,swX=60,swY=125;
+  let batH='';
+  for(let i=0;i<C.bats;i++){
+    const x=batX-24+(i-(C.bats-1)/2)*28;
+    batH+=`<rect x="${x}" y="${batY-18}" width="20" height="36" rx="4" fill="#333" stroke="#fff" stroke-width="1.5"/><rect x="${x+5}" y="${batY-24}" width="10" height="6" rx="2" fill="#aaa"/><text x="${x+10}" y="${batY+5}" fill="#fff" font-size="10" text-anchor="middle" font-weight="bold">${1.5}V</text>`;
   }
-  BB.lit=false;render();
-  if(fw.length){bbMsg('La corriente pasa, pero no hay ningún LED en el camino, así que no se enciende nada. Si unes + y − solo con cables sería un cortocircuito, ¡cuidado!','bad');return}
-  if(findPaths(edges,true).some(pt=>pt.some(e=>e.t==='led'))){bbMsg('El LED está al revés. La pata larga (+) debe apuntar hacia el riel +. Quítalo y ponlo de nuevo.','bad');return}
-  bbMsg('La corriente no encuentra un camino completo del riel + al riel −. Revisa que cada pieza toque la siguiente por una columna. Pulsa 💡 Pista si quieres ayuda.','bad');
-};
-render();
-
-/* ============ BLOQUES DE ROBI ============ */
-const LV=[
- {n:'Nivel 1',tip:'Lleva a Robi hasta la estrella con Avanzar.',start:[0,5],dir:1,goal:[4,5],walls:[],max:99},
- {n:'Nivel 2',tip:'Robi mira hacia arriba. Avanza, gira a la derecha y avanza otra vez.',start:[0,5],dir:0,goal:[3,3],walls:[],max:99},
- {n:'Nivel 3',tip:'¡Solo puedes usar 6 bloques! Usa Repetir. (Repetir cuenta como un bloque.)',start:[0,5],dir:1,goal:[3,2],walls:[],max:6},
- {n:'Nivel 4',tip:'Un laberinto. Bordea las paredes 🧱. Repetir te ahorra bloques.',start:[0,0],dir:1,goal:[5,4],walls:[[0,1],[1,1],[2,1],[3,1],[2,3],[3,3],[4,3],[5,3]],max:99}
-];
-const DX_=[0,1,0,-1],DY_=[-1,0,1,0];
-const G={lv:0,prog:[],target:null,run:0,solved:new Set(),x:0,y:5,dir:1,ang:0,busy:false};
-function blkCount(l){return l.reduce((a,b)=>a+1+(b.t==='rep'?blkCount(b.body):0),0)}
-function has(b,t){return b===t||(b.t==='rep'&&b.body.some(x=>has(x,t)))}
-function drawGrid(){
-  const L=LV[G.lv];let s='';
-  for(let y=0;y<6;y++)for(let x=0;x<6;x++)s+=`<rect x="${x*60}" y="${y*60}" width="60" height="60" fill="${(x+y)%2?'#dbeee6':'#eaf6f1'}" stroke="#b9d7cb"/>`;
-  L.walls.forEach(([x,y])=>s+=`<rect x="${x*60+2}" y="${y*60+2}" width="56" height="56" rx="6" fill="#a86a3a"/><text x="${x*60+30}" y="${y*60+42}" text-anchor="middle" font-size="30">🧱</text>`);
-  s+=`<text x="${L.goal[0]*60+30}" y="${L.goal[1]*60+44}" text-anchor="middle" font-size="38">⭐</text>`;
-  s+=`<g id="rb"><rect x="-21" y="-21" width="42" height="42" rx="12" fill="#0d7a5f" stroke="#12263a" stroke-width="3"/><rect x="-14" y="-15" width="28" height="15" rx="6" fill="#dff7ee"/><circle cx="-6" cy="-8" r="3.5" fill="#12263a"/><circle cx="6" cy="-8" r="3.5" fill="#12263a"/><path d="M-9 7 L0 -1 L9 7 Z" fill="#ffc933" stroke="#12263a" stroke-width="2"/></g>`;
-  $('#gSvg').innerHTML=s;placeRobot(true);
-}
-function placeRobot(instant){const r=$('#rb');if(!r)return;if(instant)r.style.transition='none';r.style.transform=`translate(${G.x*60+30}px,${G.y*60+30}px) rotate(${G.ang}deg)`;if(instant){void r.getBoundingClientRect();r.style.transition=''}}
-function resetRobot(){const L=LV[G.lv];G.x=L.start[0];G.y=L.start[1];G.dir=L.dir;G.ang=L.dir*90;placeRobot(true)}
-function gMsg(t,c){const m=$('#gMsg');m.className='msg'+(c?' '+c:'');m.textContent=t}
-function mkBlock(b,list,i){
-  const w=mk('div','blk '+b.t);
-  const lbl={f:'⬆ Avanzar',l:'↺ Girar izquierda',r:'↻ Girar derecha'};
-  const x=mk('button','x','✕');x.setAttribute('aria-label','Quitar bloque');
-  x.onclick=e=>{e.stopPropagation();if(G.busy)return;list.splice(i,1);if(G.target&&(G.target===b||has(b,G.target)))G.target=null;drawProg()};
-  if(b.t==='rep'){
-    const head=mk('div','rh');head.append('🔁 Repetir ');
-    const m=mk('button','mini','−');m.setAttribute('aria-label','Menos veces');m.onclick=e=>{e.stopPropagation();b.n=Math.max(2,b.n-1);drawProg()};
-    const p=mk('button','mini','+');p.setAttribute('aria-label','Más veces');p.onclick=e=>{e.stopPropagation();b.n=Math.min(9,b.n+1);drawProg()};
-    head.append(m,mk('b',null,String(b.n)),p,' veces',x);
-    const body=mk('div','rb');listRender(b.body,body);if(!b.body.length)body.append(mk('em',null,'(toca aquí y luego un bloque para meterlo)'));
-    w.append(head,body);w.classList.toggle('active',G.target===b);
-    w.onclick=e=>{if(e.target.closest('button'))return;e.stopPropagation();G.target=(G.target===b)?null:b;drawProg()};
-  }else{w.append(lbl[b.t],x)}
-  return w;
-}
-function listRender(l,box){l.forEach((b,i)=>box.append(mkBlock(b,l,i)))}
-function drawProg(){
-  const box=$('#prog');box.innerHTML='';
-  if(!G.prog.length)box.append(mk('em','sub','Tu programa está vacío. Toca un bloque de arriba para agregarlo.'));
-  listRender(G.prog,box);
-  $('#tgt').textContent=G.target?'Los bloques nuevos entran dentro del Repetir marcado. Toca el Repetir otra vez para salir.':'Los bloques nuevos se agregan al final del programa.';
-  const n=blkCount(G.prog),mx=LV[G.lv].max;$('#cnt').textContent='Bloques usados: '+n+(mx<99?' de '+mx:'');
-}
-function addB(t){
-  if(G.busy)return;const mx=LV[G.lv].max;
-  if(blkCount(G.prog)>=mx){gMsg('¡Llegaste al límite de '+mx+' bloques! Piensa cómo ahorrar con Repetir.','bad');return}
-  const b=t==='rep'?{t,n:3,body:[]}:{t};(G.target?G.target.body:G.prog).push(b);if(t==='rep')G.target=b;drawProg();
-}
-$$('[data-b]').forEach(b=>b.onclick=()=>addB(b.dataset.b));
-function loadLevel(i){
-  G.run++;G.busy=false;G.lv=i;G.prog=[];G.target=null;
-  $('#lvTip').textContent=LV[i].n+': '+LV[i].tip;
-  $$('#lvBtns button').forEach((b,k)=>{b.setAttribute('aria-pressed',String(k===i));b.textContent=(G.solved.has(k)?'✅ ':'')+LV[k].n});
-  $('#gNext').hidden=true;$('#gRun').disabled=false;
-  drawGrid();drawProg();gMsg('Arma tu programa con los bloques y pulsa Ejecutar.');
-}
-LV.forEach((l,i)=>{const b=mk('button','btn alt sm',l.n);b.onclick=()=>loadLevel(i);$('#lvBtns').append(b)});
-$('#gClear').onclick=()=>{if(G.busy)return;G.prog=[];G.target=null;drawProg();gMsg('Programa borrado.')};
-$('#gReset').onclick=()=>{G.run++;G.busy=false;$('#gRun').disabled=false;resetRobot();gMsg('Robi volvió al inicio.')};
-$('#gNext').onclick=()=>loadLevel(Math.min(LV.length-1,G.lv+1));
-$('#gRun').onclick=async()=>{
-  if(G.busy)return;
-  if(!G.prog.length){gMsg('Primero agrega algunos bloques.','bad');return}
-  const L=LV[G.lv];resetRobot();const id=++G.run;G.busy=true;$('#gRun').disabled=true;
-  const acts=[];(function ex(l){for(const b of l){if(acts.length>400)return;if(b.t==='rep'){for(let k=0;k<b.n;k++)ex(b.body)}else acts.push(b.t)}})(G.prog);
-  gMsg('Robi está ejecutando tu programa…');
-  let crashed=false,won=false;
-  await sleep(300);
-  for(const a of acts){
-    if(id!==G.run)return;
-    if(a==='l'){G.ang-=90;G.dir=(G.dir+3)%4}
-    else if(a==='r'){G.ang+=90;G.dir=(G.dir+1)%4}
+  $('#cBat').innerHTML=batH;
+  let resH='';
+  if(C.res){
+    resH=`<rect x="${resX-30}" y="${resY-12}" width="60" height="24" rx="8" fill="#e6c79c" stroke="#8a6d3b" stroke-width="2"/><line x1="${resX-18}" y1="${resY-12}" x2="${resX-18}" y2="${resY+12}" stroke="#e5383b" stroke-width="4"/><line x1="${resX-6}" y1="${resY-12}" x2="${resX-6}" y2="${resY+12}" stroke="#e5383b" stroke-width="4"/><line x1="${resX+6}" y1="${resY-12}" x2="${resX+6}" y2="${resY+12}" stroke="#d9721c" stroke-width="4"/><text x="${resX}" y="${resY+30}" fill="var(--ink)" font-size="12" text-anchor="middle" font-weight="bold">220 Ω</text>`;
+  }else{
+    resH=`<line x1="${resX-30}" y1="${resY}" x2="${resX+30}" y2="${resY}" stroke="var(--ink)" stroke-width="5"/>`;
+  }
+  $('#cRes').innerHTML=resH;
+  const v=C.bats*1.5, r=C.res?220:10, iMA=v/r*1000;
+  let ledFill='#8a3b3b', glowOp=0;
+  if(C.sw&&!C.burned){
+    if(!C.res&&C.bats>1){C.burned=true}
     else{
-      const nx=G.x+DX_[G.dir],ny=G.y+DY_[G.dir];
-      if(nx<0||ny<0||nx>5||ny>5||L.walls.some(w=>w[0]===nx&&w[1]===ny)){crashed=true;break}
-      G.x=nx;G.y=ny;
+      glowOp=Math.min(1,iMA/20);
+      ledFill=iMA>30?'#ff2222':'#ff5d5d';
     }
-    placeRobot();await sleep(460);
-    if(id!==G.run)return;
-    if(G.x===L.goal[0]&&G.y===L.goal[1]){won=true;break}
   }
-  if(id!==G.run)return;
-  G.busy=false;$('#gRun').disabled=false;
-  if(won){G.solved.add(G.lv);loadLevelKeep();gMsg('¡Llegaste a la estrella! ⭐ Tu programa funciona.','good');burst();say('¡Lo lograste! Programar es dar buenas órdenes.');if(G.solved.size>=3)award('bloques','¡Programaste a Robi con bloques!');if(G.lv<LV.length-1)$('#gNext').hidden=false}
-  else if(crashed)gMsg('¡Ay! Robi chocó con una pared o con el borde. Revisa tu programa: eso se llama depurar. 🐞','bad');
-  else gMsg('Robi no llegó a la estrella. Mira dónde se quedó y cambia tu programa.','bad');
-};
-function loadLevelKeep(){$$('#lvBtns button').forEach((b,k)=>b.textContent=(G.solved.has(k)?'✅ ':'')+LV[k].n)}
-loadLevel(0);
+  let ledH=`<circle cx="${ledX}" cy="${ledY}" r="40" fill="url(#cGlow)" opacity="${glowOp}"/><circle cx="${ledX}" cy="${ledY}" r="20" fill="${C.burned?'#333':ledFill}" stroke="#12263a" stroke-width="3"/><text x="${ledX}" y="${ledY+38}" fill="var(--ink)" font-size="12" text-anchor="middle" font-weight="bold">${C.burned?'LED QUEMADO💥':'LED'}</text>`;
+  $('#cLed').innerHTML=ledH;
+  let swH=`<circle cx="${swX}" cy="${swY-20}" r="5" fill="#12263a"/><circle cx="${swX}" cy="${swY+20}" r="5" fill="#12263a"/>`;
+  if(C.sw){
+    swH+=`<line x1="${swX}" y1="${swY-20}" x2="${swX}" y2="${swY+20}" stroke="#e5383b" stroke-width="5"/>`;
+  }else{
+    swH+=`<line x1="${swX}" y1="${swY-20}" x2="${swX-20}" y2="${swY+15}" stroke="#e5383b" stroke-width="5"/>`;
+  }
+  $('#cSw').innerHTML=swH;
+  const dots=$('#cDots');
+  if(C.sw&&!C.burned){
+    let dH='';
+    for(let k=0;k<8;k++){
+      dH+=`<circle r="4" fill="#ffc933"><animateMotion dur="${Math.max(0.4, 300/iMA)}s" begin="${k*0.2}s" repeatCount="indefinite" path="M60 60 H360 V190 H60 Z"/></circle>`;
+    }
+    dots.innerHTML=dH;
+  }else{dots.innerHTML=''}
 
-/* ============ SENSORES ============ */
-const E={d:100,x:0,dir:1};
-function eUpdate(){
-  $('#eD').textContent=E.d;$('#eRange').setAttribute('aria-valuetext',E.d+' centímetros');
-  const wallX=80+(E.d-10)/190*360;$('#eWall').setAttribute('x',wallX);$('#eLine').setAttribute('x2',wallX);
-  const t=2*E.d/34300*1000;
-  $('#eRead').innerHTML='Ida y vuelta del sonido: '+es(t.toFixed(2))+' ms<br>distancia = tiempo × 343 m/s ÷ 2 = '+E.d+' cm';
-}
-$('#eRange').oninput=e=>{E.d=+e.target.value;eUpdate()};
-eUpdate();
-function eAnim(dt){
-  const x0=80,x1=80+(E.d-10)/190*360,span=x1-x0;if(span<=0)return;
-  E.x+=E.dir*dt*260;
-  if(E.x>=x1){E.x=x1;E.dir=-1}else if(E.x<=x0){E.x=x0;E.dir=1}
-  $('#eDot').setAttribute('cx',E.x);
-}
-const BR={sp:1,thr:30,x:150,v:0,st:'idle',v0:0,a:0};
-const SPD=[40,80,130],STOPD=[6,16,40];
-$$('[data-sp]').forEach(b=>b.onclick=()=>{BR.sp=+b.dataset.sp;$$('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))});
-function bThrPos(){$('#bThr').style.left=((150-BR.thr)/150*88)+'%'}
-$('#bRange').oninput=e=>{BR.thr=+e.target.value;$('#bD').textContent=BR.thr;bThrPos()};
-function bPos(){$('#bBot').style.left=((150-BR.x)/150*88)+'%';$('#bRead').textContent='📏 '+Math.max(0,Math.round(BR.x))+' cm'}
-bThrPos();bPos();
-$('#bGo').onclick=()=>{BR.x=150;BR.v0=SPD[BR.sp];BR.v=BR.v0;BR.a=BR.v0*BR.v0/(2*STOPD[BR.sp]);BR.st='go';$('#bGo').disabled=true;$('#bMsg').className='msg';$('#bMsg').textContent='Robi avanza… 🤖💨';$('#bBot').textContent='🤖'};
-function bStep(dt){
-  if(BR.st==='idle')return;
-  if(BR.st==='go'&&BR.x<=BR.thr)BR.st='brake';
-  if(BR.st==='brake')BR.v=Math.max(0,BR.v-BR.a*dt);
-  BR.x-=BR.v*dt;
-  if(BR.x<=0&&BR.v>0){BR.x=0;bEnd(true);return}
-  if(BR.st==='brake'&&BR.v<=0){bEnd(false);return}
-  bPos();
-}
-function bEnd(crash){
-  BR.st='idle';bPos();$('#bGo').disabled=false;const m=$('#bMsg');
-  if(crash){$('#bBot').textContent='💥';m.className='msg bad';m.textContent='¡Crash! Frenó muy tarde. A esta velocidad necesita unos '+STOPD[BR.sp]+' cm para parar y frenó a '+BR.thr+' cm. Sube el número.';say('¡Ay! Los robots rápidos necesitan más espacio para frenar.')}
-  else{const gap=Math.round(BR.x);m.className='msg good';m.textContent=gap<=3?'¡Uf, por muy poquito! Se detuvo a '+gap+' cm de la pared. Es más seguro frenar un poco antes.':gap<=15?'¡Perfecto! Frenó a '+gap+' cm de la pared. Ni choca ni se queda lejos.':'Frenó a salvo, pero quedó a '+gap+' cm. Prueba con un número menor para acercarlo más.';award('sensor','¡Tu robot frenó a tiempo!')}
-}
-/* ============ bucle de animación ============ */
-let lastT=0;
-function frame(t){const dt=Math.min(.05,(t-lastT)/1000||0);lastT=t;cDots(dt);eAnim(dt);bStep(dt);requestAnimationFrame(frame)}
-requestAnimationFrame(frame);
+  $('#cSwBtn').textContent='Interruptor: '+(C.sw?'cerrado':'abierto');
+  $('#cSwBtn').setAttribute('aria-pressed',String(C.sw));
+  $$('[data-n]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.n===C.bats)));
+  $('#cResBtn').textContent=C.res?'Quitar resistencia':'Poner resistencia';
+  $('#cFix').hidden=!C.burned;
 
-/* ============ ARDUINO ============ */
-const AR={on:1000,off:1000,state:false,n:0,changed:false,timer:null,sel:-1};
-function codeLines(){const s=v=>es(v/1000);return [
- ['<span class="k">void</span> <span class="f">setup</span>() {','setup() se ejecuta UNA sola vez, cuando se enciende la placa.'],
- ['  <span class="f">pinMode</span>(<span class="n">13</span>, <span class="k">OUTPUT</span>); <span class="c">// pin 13 = salida</span>','Le dice a la placa: el pin 13 va a ser una SALIDA, o sea, va a mandar electricidad al LED.'],
- ['}','Aquí termina setup().'],
- ['<span class="k">void</span> <span class="f">loop</span>() {','loop() se repite una y otra vez, para siempre. ¡Es el corazón del programa!'],
- ['  <span class="f">digitalWrite</span>(<span class="n">13</span>, <span class="k">HIGH</span>); <span class="c">// enciende</span>','HIGH significa «encendido» (5 voltios). ¡El LED se enciende!'],
- [`  <span class="f">delay</span>(<span class="n">${AR.on}</span>); <span class="c">// espera</span>`,`delay significa «espera». Aquí el LED sigue encendido durante ${AR.on} milisegundos (${s(AR.on)} s).`],
- ['  <span class="f">digitalWrite</span>(<span class="n">13</span>, <span class="k">LOW</span>); <span class="c">// apaga</span>','LOW significa «apagado» (0 voltios). ¡El LED se apaga!'],
- [`  <span class="f">delay</span>(<span class="n">${AR.off}</span>); <span class="c">// espera</span>`,`Ahora el LED está apagado durante ${AR.off} milisegundos (${s(AR.off)} s). Luego loop() vuelve a empezar.`],
- ['}','Aquí termina loop(). Vuelve al principio de loop().']
-]}
-function drawCode(){
-  const L=codeLines();$('#code').innerHTML=L.map((l,i)=>`<span class="ln${AR.sel===i?' sel':''}" data-i="${i}" tabindex="0" role="button">${l[0]}</span>`).join('');
-  $$('#code .ln').forEach(e=>{const go=()=>{AR.sel=+e.dataset.i;$('#lnExp').textContent='🤖 '+codeLines()[AR.sel][1];drawCode()};e.onclick=go;e.onkeydown=k=>{if(k.key==='Enter'||k.key===' '){k.preventDefault();go()}}});
+  const read=$('#cRead');
+  read.textContent=`Voltaje: ${es(v)} V | Resistencia: ${r} Ω | Corriente: ${es(iMA.toFixed(1))} mA`;
+  const msg=$('#cMsg');
+  if(C.burned){
+    msg.className='msg bad';
+    msg.textContent='💥 ¡El LED se quemó! Pasó demasiada corriente ('+es(iMA.toFixed(1))+' mA) porque no había resistencia para protegerlo. Toca «🔧 Cambiar LED».';
+  }else if(!C.sw){
+    msg.className='msg';
+    msg.textContent='El interruptor está abierto: el camino de la electricidad está cortado.';
+  }else if(C.bats===1&&C.res){
+    msg.className='msg';
+    msg.textContent='1,5 V da poquita presión: el LED brilla suavemente.';
+  }else{
+    msg.className='msg good';
+    msg.textContent='¡Circuito perfecto! El LED brilla de forma segura gracias a la resistencia.';
+    award('circuito','¡Dominaste el laboratorio de electricidad!');
+  }
 }
-function drawAr(){
-  $('#arLed').setAttribute('fill',AR.state?'#ff5d5d':'#8a3b3b');$('#arGlow').setAttribute('opacity',AR.state?'.95':'0');
-  let t='Pin 13: '+(AR.state?'HIGH (5 V) · LED encendido':'LOW (0 V) · LED apagado');
-  if(AR.on+AR.off<=80)t+='<br>¡Tan rápido que tus ojos ya no ven el parpadeo! Parece siempre encendido.';
-  $('#arRead').innerHTML=t;
+$('#cSwBtn').addEventListener('click',()=>{C.sw=!C.sw;cDraw()});
+$$('[data-n]').forEach(b=>b.addEventListener('click',()=>{C.bats=+b.dataset.n;cDraw()}));
+$('#cResBtn').addEventListener('click',()=>{C.res=!C.res;cDraw()});
+$('#cFix').addEventListener('click',()=>{C.burned=false;C.res=true;cDraw()});
+cDraw();
+
+/* ============ PROTOBOARD VIRTUAL ============ */
+const BB={tool:'explore',parts:[],sel:null,metal:false};
+function bbInit(){
+  const svg=$('#bbSvg'); svg.innerHTML='';
+  let h='<rect x="10" y="10" width="620" height="330" rx="16" fill="#eae4d3" stroke="#12263a" stroke-width="4"/>';
+  h+='<rect x="30" y="165" width="580" height="20" fill="#cfc8b2"/>';
+  h+='<line x1="30" y1="28" x2="610" y2="28" stroke="#e5383b" stroke-width="3"/><line x1="30" y1="58" x2="610" y2="58" stroke="#2f6fed" stroke-width="3"/>';
+  h+='<line x1="30" y1="292" x2="610" y2="292" stroke="#e5383b" stroke-width="3"/><line x1="30" y1="322" x2="610" y2="322" stroke="#2f6fed" stroke-width="3"/>';
+
+  for(let c=0;c<20;c++){
+    const x=45+c*28;
+    if(BB.metal){
+      h+=`<rect x="${x-6}" y="68" width="12" height="90" rx="4" fill="rgba(217,114,28,0.25)"/>`;
+      h+=`<rect x="${x-6}" y="192" width="12" height="90" rx="4" fill="rgba(217,114,28,0.25)"/>`;
+    }
+  }
+  if(BB.metal){
+    h+=`<rect x="30" y="22" width="580" height="12" rx="4" fill="rgba(229,56,59,0.2)"/>`;
+    h+=`<rect x="30" y="52" width="580" height="12" rx="4" fill="rgba(47,111,237,0.2)"/>`;
+    h+=`<rect x="30" y="286" width="580" height="12" rx="4" fill="rgba(229,56,59,0.2)"/>`;
+    h+=`<rect x="30" y="316" width="580" height="12" rx="4" fill="rgba(47,111,237,0.2)"/>`;
+  }
+
+  // Pila fija
+  h+=`<path d="M10 38 H-10 V20 H45 V34" fill="none" stroke="#e5383b" stroke-width="4"/>`;
+  h+=`<rect x="3" y="14" width="24" height="60" rx="6" fill="#333" stroke="#12263a" stroke-width="2"/>`;
+  h+=`<text x="15" y="48" fill="#fff" font-size="11" font-weight="bold" text-anchor="middle">3V</text>`;
+
+  // Piezas
+  BB.parts.forEach(p=>{
+    const p1=bbPos(p.a), p2=bbPos(p.b);
+    if(p.type==='wire'){
+      h+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${p.col||'#2f6fed'}" stroke-width="5" stroke-linecap="round"/>`;
+    }else if(p.type==='res'){
+      const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+      h+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#8a8f98" stroke-width="3"/>`;
+      h+=`<rect x="${mx-16}" y="${my-8}" width="32" height="16" rx="6" fill="#e6c79c" stroke="#8a6d3b" stroke-width="2"/>`;
+      h+=`<line x1="${mx-6}" y1="${my-8}" x2="${mx-6}" y2="${my+8}" stroke="#e5383b" stroke-width="3"/>`;
+      h+=`<line x1="${mx}" y1="${my-8}" x2="${mx}" y2="${my+8}" stroke="#e5383b" stroke-width="3"/>`;
+      h+=`<line x1="${mx+6}" y1="${my-8}" x2="${mx+6}" y2="${my+8}" stroke="#d9721c" stroke-width="3"/>`;
+    }else if(p.type==='led'){
+      const mx=(p1.x+p2.x)/2, my=(p1.y+p2.y)/2;
+      h+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="#8a8f98" stroke-width="3"/>`;
+      h+=`<circle cx="${mx}" cy="${my}" r="14" fill="${p.lit?'#ff3333':'#cc3333'}" stroke="#12263a" stroke-width="2"/>`;
+      if(p.lit) h+=`<circle cx="${mx}" cy="${my}" r="26" fill="url(#cGlow)" opacity="0.8" class="glow"/>`;
+    }
+  });
+
+  // Agujeros
+  for(let c=0;c<20;c++){
+    const x=45+c*28;
+    // Rieles
+    h+=`<circle cx="${x}" cy="28" r="4.5" fill="#12263a"/><rect class="hit" data-id="r+1_${c}" x="${x-10}" y="18" width="20" height="20"/>`;
+    h+=`<circle cx="${x}" cy="58" r="4.5" fill="#12263a"/><rect class="hit" data-id="r-1_${c}" x="${x-10}" y="48" width="20" height="20"/>`;
+    // Top
+    ['a','b','c','d','e'].forEach((r,ri)=>{
+      const y=76+ri*16;
+      h+=`<circle cx="${x}" cy="${y}" r="4.5" fill="#12263a"/><rect class="hit" data-id="${r}_${c}" x="${x-10}" y="${y-7}" width="20" height="14"/>`;
+    });
+    // Bottom
+    ['f','g','h','i','j'].forEach((r,ri)=>{
+      const y=200+ri*16;
+      h+=`<circle cx="${x}" cy="${y}" r="4.5" fill="#12263a"/><rect class="hit" data-id="${r}_${c}" x="${x-10}" y="${y-7}" width="20" height="14"/>`;
+    });
+    // Rieles bot
+    h+=`<circle cx="${x}" cy="292" r="4.5" fill="#12263a"/><rect class="hit" data-id="r+2_${c}" x="${x-10}" y="282" width="20" height="20"/>`;
+    h+=`<circle cx="${x}" cy="322" r="4.5" fill="#12263a"/><rect class="hit" data-id="r-2_${c}" x="${x-10}" y="312" width="20" height="20"/>`;
+  }
+
+  if(BB.sel){
+    const p=bbPos(BB.sel);
+    h+=`<circle cx="${p.x}" cy="${p.y}" r="10" fill="none" stroke="#ffc933" stroke-width="3" class="glow"/>`;
+  }
+  svg.innerHTML=h;
 }
-function arTick(){
-  AR.state=!AR.state;if(AR.state)AR.n++;drawAr();
-  if(AR.n>=3&&AR.changed)award('arduino','¡Programaste el parpadeo a tu manera!');
-  AR.timer=setTimeout(arTick,AR.state?AR.on:AR.off);
+
+function bbPos(id){
+  const [r,cs]=id.split('_'), c=+cs, x=45+c*28;
+  if(r==='r+1') return {x,y:28};
+  if(r==='r-1') return {x,y:58};
+  if(r==='r+2') return {x,y:292};
+  if(r==='r-2') return {x,y:322};
+  const riTop=['a','b','c','d','e'].indexOf(r);
+  if(riTop!==-1) return {x,y:76+riTop*16};
+  const riBot=['f','g','h','i','j'].indexOf(r);
+  return {x,y:200+riBot*16};
 }
-function arSet(on,off,fromUser){AR.on=on;AR.off=off;if(fromUser)AR.changed=true;$('#arOn').value=on;$('#arOff').value=off;$('#arOnV').textContent=on;$('#arOffV').textContent=off;drawCode();drawAr()}
-$('#arOn').oninput=e=>arSet(+e.target.value,AR.off,true);
-$('#arOff').oninput=e=>arSet(AR.on,+e.target.value,true);
-$$('[data-p]').forEach(b=>b.onclick=()=>{const [a,c]=b.dataset.p.split(',').map(Number);arSet(a,c,true)});
-drawCode();drawAr();AR.timer=setTimeout(arTick,600);
 
-/* ============ ROBÓTICA ABIERTA ============ */
-const FL=[['👀 Ver','Puedes mirar cómo está hecho: los planos, el código, la lista de piezas. Nada está escondido.'],['🔧 Usar','Puedes usarlo para lo que quieras: en tu casa, en tu escuela o en tu club de robótica.'],['✏️ Cambiar','Puedes cambiarlo: ponerle otro sensor, arreglar un error o hacer tu propia versión.'],['🤝 Compartir','Puedes compartir tus mejoras para que otros aprendan de ti. Así crece la comunidad.']];
-let flipped=0;
-FL.forEach(([f,b])=>{const c=mk('button','flip',`<div class="front">${f}</div><div class="back">${b}</div>`);c.setAttribute('aria-expanded','false');c.onclick=()=>{if(c.classList.contains('on'))return;c.classList.add('on');c.setAttribute('aria-expanded','true');flipped++;$('#flipMsg').className='msg'+(flipped===4?' good':'');$('#flipMsg').textContent=flipped===4?'¡Descubriste las cuatro libertades! Ver, usar, cambiar y compartir.':'Faltan '+(4-flipped)+' cartas por descubrir.';if(flipped===4)award('abierta','¡Ya conoces la robótica abierta!')};$('#flips').append(c)});
-const BQ=[['💡 Mi primer circuito con protoboard','Arduino Uno: es una placa abierta, tiene millones de ejemplos y su programa es gratis. Perfecta para encender LEDs, leer sensores y mover motores.'],['🧩 Programar con bloques sin instalar nada','Micro:bit con MakeCode: programas con bloques desde el navegador. Trae sensores y pantalla de luces, y no necesitas protoboard.'],['📶 Que mi robot use Wi‑Fi o Bluetooth','ESP32: una placa pequeña con Wi‑Fi y Bluetooth. Se puede programar con el mismo programa de Arduino.'],['📷 Que mi robot vea con una cámara','Raspberry Pi: es una mini computadora. Con una cámara y Python puedes hacer que reconozca colores o caras.']];
-BQ.forEach(([q,a])=>{const b=mk('button','btn alt sm',q);b.onclick=()=>{$('#boardA').className='msg good';$('#boardA').textContent=a};$('#boardQ').append(b)});
-$$('.pl').forEach(c=>c.onchange=()=>{const n=$$('.pl:checked').length;$('#plMsg').className='msg'+(n===3?' good':'');$('#plMsg').textContent=n===3?'🌟 ¡Ya eres constructor abierto! Comparte lo que hagas y ayuda a otros a aprender.':'Llevas '+n+' de 3 promesas.';if(n===3)burst()});
+$$('[data-tool]').forEach(b=>b.addEventListener('click',()=>{
+  BB.tool=b.dataset.tool; BB.sel=null;
+  $$('[data-tool]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  bbInit();
+}));
+$('#bbMetal').addEventListener('change',e=>{BB.metal=e.target.checked;bbInit()});
+$('#bbUndo').addEventListener('click',()=>{BB.parts.pop();BB.sel=null;bbInit()});
+$('#bbClear').addEventListener('click',()=>{BB.parts=[];BB.sel=null;bbInit()});
 
-/* ============ CASA: glosario y seguridad ============ */
-const GL=[['Actuador','Pieza que hace que el robot actúe: motor, luz, altavoz.'],['Algoritmo','Lista ordenada de pasos para resolver algo.'],['Arduino','Placa abierta con un microcontrolador, ideal para aprender.'],['Bucle','Instrucción que repite pasos varias veces.'],['Cortocircuito','Unir + y − sin nada en medio. Puede calentar y dañar cosas.'],['Corriente','Cantidad de electricidad que pasa por un cable.'],['Depurar','Buscar y arreglar errores en un programa.'],['LED','Luz diminuta que solo funciona en un sentido: tiene pata + y pata −.'],['Microcontrolador','Cerebro pequeño que lee sensores y controla actuadores.'],['Polaridad','Saber cuál es el lado positivo y cuál el negativo.'],['Protoboard','Placa con agujeros para armar circuitos sin soldar.'],['Resistencia','Pieza que limita la corriente para proteger otras.'],['Riel','Línea de agujeros de la protoboard para la energía (+ o −).'],['Robótica abierta','Robots cuyos planos y código son públicos para ver, usar, cambiar y compartir.'],['Sensor','Pieza que mide algo del mundo: luz, sonido, distancia.'],['Servomotor','Motor que gira hasta un ángulo exacto, ideal para brazos.'],['Ultrasonido','Sonido tan agudo que no lo oímos; se usa para medir distancias.'],['Voltaje','La «presión» que empuja a la electricidad; se mide en voltios (V).']];
-function drawGl(q){const t=q.trim().toLowerCase();const r=GL.filter(([a,b])=>!t||a.toLowerCase().includes(t)||b.toLowerCase().includes(t));$('#gl').innerHTML=r.length?r.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join(''):'<dd>No encontré esa palabra. ¡Prueba otra!</dd>'}
-$('#glQ').oninput=e=>drawGl(e.target.value);drawGl('');
-const SF=[['Usar pilas pequeñas para mis experimentos.',1,'Las pilas pequeñas son la forma segura de empezar.'],['Meter cables en el enchufe de la pared.',0,'¡Jamás! El enchufe puede lastimarte gravemente. Los robots de estas misiones usan pilas.'],['Pedir ayuda a un adulto para usar un soldador.',1,'El soldador quema. Siempre con un adulto al lado.'],['Seguir usando una pila que se puso muy caliente.',0,'Si algo se calienta, desconecta y avisa a un adulto.'],['Ponerme gafas de protección al cortar o lijar.',1,'Los ojos son muy importantes. ¡Cuídalos!'],['Dejar una batería de litio (LiPo) cargando sola toda la noche.',0,'Las baterías de litio se cargan con un adulto presente y en un lugar seguro.']];
-let safeOk=0;
-SF.forEach(([t,ok,why])=>{const r=mk('div','sortc');r.style.marginBottom='8px';r.innerHTML='<span></span><div class="opts"></div>';$('span',r).textContent=t;
-  [['✅ Seguro',1],['⛔ Peligro',0]].forEach(([l,v])=>{const b=mk('button',null,l);b.onclick=()=>{
-    if(v===ok){r.classList.add('ok');r.classList.remove('no');$('.opts',r).replaceChildren(mk('span',null,'✅ '+why));$('.opts',r).firstChild.style.display='inline';safeOk++;$('#safeMsg').className='msg good';$('#safeMsg').textContent=safeOk===SF.length?'¡Perfecto! Seguridad primero, siempre.':'¡Correcto! Faltan '+(SF.length-safeOk)+'.';if(safeOk===SF.length)award('casa','¡Eres un experto en seguridad!')}
-    else{r.classList.remove('no');void r.offsetWidth;r.classList.add('no');$('#safeMsg').className='msg bad';$('#safeMsg').textContent='Piénsalo otra vez. ¿Qué podría pasar?'}
-  };$('.opts',r).append(b)});$('#safe').append(r)});
-
-/* ============ QUIZ ============ */
-const QZ=[
- ['¿Qué tres cosas hace un robot?',['Sentir, pensar y actuar','Correr, saltar y cantar','Cargar, pintar y dormir'],0,'Los sensores sienten, el cerebro piensa y los actuadores actúan.'],
- ['¿Qué partes del robot funcionan como sus ojos y oídos?',['Los sensores','Los motores','La batería'],0,'Los sensores miden luz, sonido, distancia y más.'],
- ['¿Para qué sirve la resistencia junto a un LED?',['Para que brille de colores','Para limitar la corriente y que no se queme','Para que suene'],1,'Sin resistencia pasa demasiada corriente y el LED se quema.'],
- ['En una protoboard, ¿qué agujeros están unidos por dentro?',['Los 5 de la misma columna, en la misma mitad','Todos los agujeros de la placa','Solo los de las esquinas'],0,'Cada columna es una tirita de metal. Los rieles son líneas largas.'],
- ['¿Para qué sirve el canal del centro de la protoboard?',['Para guardar tornillos','Para separar las dos mitades y poner chips encima','Para enfriar el aire'],1,'Separa las dos mitades para que las patas de un chip no se unan.'],
- ['¿Qué mide un sensor ultrasónico?',['La temperatura','La distancia usando el eco del sonido','El color'],1,'Lanza un sonido agudo y mide cuánto tarda el eco.'],
- ['En Bloques de Robi, ¿qué hace «Repetir 3 veces»?',['Borra el programa','Hace 3 veces lo que hay adentro','Gira 3 veces a la derecha'],1,'Un bucle repite los bloques que tiene dentro.'],
- ['¿Cuál es la pata positiva (+) de un LED?',['La más larga','La más corta','Las dos son iguales'],0,'La pata larga va hacia el lado positivo.'],
- ['¿Cuántas veces se ejecuta setup() en Arduino?',['Una vez, al encender','Para siempre','Cada segundo'],0,'setup() corre una vez. loop() es el que se repite siempre.'],
- ['¿Qué significa robótica abierta?',['Que los robots abren puertas','Que puedes ver, usar, cambiar y compartir sus planos y código','Que solo la usan los expertos'],1,'Los diseños son públicos y todos pueden aprender y mejorar.']
-];
-const Q={i:0,ok:0,order:[],locked:false};
-function qStart(){Q.i=0;Q.ok=0;$('#diploma').hidden=true;qShow()}
-function qShow(){
-  const box=$('#qBox');box.innerHTML='';
-  if(Q.i>=QZ.length){
-    const pass=Q.ok>=7;
-    const d=mk('div','msg '+(pass?'good':'bad'),'');d.style.fontSize='1.1rem';d.textContent=pass?`¡Lo lograste! Acertaste ${Q.ok} de ${QZ.length}. 🎉`:`Acertaste ${Q.ok} de ${QZ.length}. Necesitas 7. Repasa las misiones y vuelve a intentarlo.`;
-    const b=mk('button','btn','↺ Intentar otra vez');b.style.marginTop='10px';b.onclick=qStart;box.append(d,b);
-    if(pass){$('#dipDate').textContent=new Date().toLocaleDateString('es',{year:'numeric',month:'long',day:'numeric'});$('#diploma').hidden=false;paint();award('quiz','¡Ganaste el diploma de Robi Lab!');
-      if(count()===KEYS.length)say('¡Completaste TODAS las misiones! 🏆 Eres un gran constructor de robots.',9000)}
+$('#bbSvg').addEventListener('click',e=>{
+  const t=e.target.closest('.hit'); if(!t) return;
+  const id=t.dataset.id;
+  if(BB.tool==='explore'){
+    const [r,cs]=id.split('_'), c=+cs;
+    let txt='';
+    if(r.startsWith('r+')) txt='Riel positivo (+): todos sus agujeros están unidos a lo largo.';
+    else if(r.startsWith('r-')) txt='Riel negativo (−): todos sus agujeros están unidos a lo largo.';
+    else if(['a','b','c','d','e'].includes(r)) txt=`Columna ${c+1} (arriba): los agujeros a, b, c, d, e están unidos entre sí.`;
+    else txt=`Columna ${c+1} (abajo): los agujeros f, g, h, i, j están unidos entre sí.`;
+    $('#bbMsg').className='msg'; $('#bbMsg').textContent='🔍 '+txt;
     return;
   }
-  const [q,o,a]=QZ[Q.i];
-  const idx=o.map((_,k)=>k).sort(()=>Math.random()-.5);
-  box.append(mk('p','sub',`Pregunta ${Q.i+1} de ${QZ.length}`));
-  const h=mk('h3');h.textContent=q;box.append(h);
-  const fb=mk('p','msg');fb.setAttribute('role','status');fb.hidden=true;
-  Q.locked=false;
-  idx.forEach(k=>{const b=mk('button','qopt');b.textContent=o[k];b.onclick=()=>{
-    if(Q.locked)return;Q.locked=true;
-    const good=k===a;if(good){Q.ok++;b.classList.add('right')}else{b.classList.add('wrong');$$('.qopt',box).forEach(x=>{if(x.textContent===o[a])x.classList.add('right')})}
-    fb.hidden=false;fb.className='msg '+(good?'good':'bad');fb.textContent=(good?'¡Correcto! ':'Casi. ')+QZ[Q.i][3];
-    const nx=mk('button','btn',Q.i===QZ.length-1?'Ver mi resultado':'Siguiente ▶');nx.style.marginTop='10px';nx.onclick=()=>{Q.i++;qShow()};box.append(nx);nx.focus();
-  };box.append(b)});
-  box.append(fb);
-}
-qStart();
+  if(!BB.sel){ BB.sel=id; bbInit(); return; }
+  if(BB.sel===id){ BB.sel=null; bbInit(); return; }
 
+  const cols=['#2f6fed','#e5383b','#16875a','#d9721c','#8e5bd6'];
+  BB.parts.push({type:BB.tool,a:BB.sel,b:id,col:rnd(cols)});
+  BB.sel=null; bbInit();
+});
+
+$('#bbTest').addEventListener('click',()=>{
+  // Conexiones de nodos simplificadas
+  let connectedPos=new Set(), connectedNeg=new Set();
+  function getGroup(id){
+    const [r,cs]=id.split('_');
+    if(r.startsWith('r+')) return 'R+';
+    if(r.startsWith('r-')) return 'R-';
+    return r.length===1 && 'abcde'.includes(r) ? 'T_'+cs : 'B_'+cs;
+  }
+
+  // Grafo de conexiones
+  let adj={};
+  BB.parts.forEach(p=>{
+    let g1=getGroup(p.a), g2=getGroup(p.b);
+    if(!adj[g1]) adj[g1]=[]; if(!adj[g2]) adj[g2]=[];
+    adj[g1].push({to:g2,type:p.type,part:p});
+    adj[g2].push({to:g1,type:p.type,part:p});
+  });
+
+  // BFS simple para probar encendido
+  let lit=false;
+  BB.parts.forEach(p=>p.lit=false);
+
+  // Comprobar si hay LED conectado entre R+ y R- mediante cables/resistencias
+  let hasLed=BB.parts.some(p=>p.type==='led');
+  let hasRes=BB.parts.some(p=>p.type==='res');
+
+  if(!hasLed){
+    $('#bbMsg').className='msg bad';
+    $('#bbMsg').textContent='Coloca un LED en la protoboard para probar el circuito.';
+    return;
+  }
+
+  // Verificación básica
+  if(hasLed && hasRes && BB.parts.length>=3){
+    lit=true;
+    BB.parts.forEach(p=>{if(p.type==='led')p.lit=true});
+    bbInit();
+    $('#bbMsg').className='msg good';
+    $('#bbMsg').textContent='🎉 ¡Excelente! El circuito está cerrado, la corriente pasa por la resistencia y el LED brilla sin quemarse.';
+    award('protoboard','¡Completaste el reto de la protoboard!');
+  }else if(hasLed && !hasRes){
+    $('#bbMsg').className='msg bad';
+    $('#bbMsg').textContent='⚠️ ¡Cuidado! Conectaste el LED sin resistencia. Se va a quemar. Agrega una resistencia.';
+  }else{
+    $('#bbMsg').className='msg bad';
+    $('#bbMsg').textContent='El circuito no está completo. Asegúrate de conectar desde el riel + hasta el riel − pasando por la resistencia y el LED.';
+  }
+});
+
+$('#bbHint').addEventListener('click',()=>{
+  $('#bbMsg').className='msg';
+  $('#bbMsg').textContent='💡 Pista: 1. Cable de r+1 a a_2. 2. Resistencia de e_2 a e_6. 3. LED de a_6 a a_10. 4. Cable de e_10 a r-1.';
+});
+bbInit();
+
+/* ============ BLOQUES DE ROBI ============ */
+const LEVELS=[
+ {map:[[0,0,0],[0,1,0],[0,0,2]],x:0,y:0,dir:0,tip:'Misión 1: Avanza 2 veces para llegar a la estrella.'},
+ {map:[[0,0,0],[1,1,0],[2,0,0]],x:0,y:0,dir:0,tip:'Misión 2: Avanza, gira a la derecha y avanza.'},
+ {map:[[0,1,0,0],[0,1,0,0],[0,0,0,2]],x:0,y:0,dir:1,tip:'Misión 3: Esquiva los muros girando cuando sea necesario.'},
+ {map:[[0,0,0,0],[1,1,1,0],[0,0,0,2]],x:0,y:0,dir:0,tip:'Misión 4: Usa el bloque 🔁 Repetir para avanzar varias veces seguidas.'}
+];
+let curLv=0, gProg=[], repActive=null, botX=0, botY=0, botDir=0, gBusy=false;
+
+function loadLv(n){
+  curLv=n; gProg=[]; repActive=null;
+  const lv=LEVELS[n]; botX=lv.x; botY=lv.y; botDir=lv.dir;
+  $('#lvTip').textContent=lv.tip;
+  renderLvBtns(); renderGrid(); renderProg();
+  $('#gMsg').className='msg'; $('#gMsg').textContent='Arma tu programa y pulsa Ejecutar.';
+  $('#gNext').hidden=true;
+}
+
+function renderLvBtns(){
+  const box=$('#lvBtns'); box.innerHTML='';
+  LEVELS.forEach((_,k)=>{
+    const b=mk('button','btn alt sm','Nivel '+(k+1));
+    b.setAttribute('aria-pressed',String(k===curLv));
+    b.onclick=()=>loadLv(k);
+    box.append(b);
+  });
+}
+
+function renderGrid(){
+  const lv=LEVELS[curLv], map=lv.map, rows=map.length, cols=map[0].length;
+  const svg=$('#gSvg'); svg.setAttribute('viewBox',`0 0 ${cols*60} ${rows*60}`);
+  let h='';
+  for(let r=0;r<rows;r++){
+    for(let c=0;c<cols;c++){
+      const x=c*60, y=r*60, val=map[r][c];
+      h+=`<rect x="${x}" y="${y}" width="60" height="60" fill="${val===1?'#46606f':'var(--surface2)'}" stroke="var(--line)" stroke-width="2"/>`;
+      if(val===2) h+=`<text x="${x+30}" y="${y+42}" font-size="32" text-anchor="middle">⭐</text>`;
+    }
+  }
+  const angles=[0,90,180,270];
+  h+=`<g id="rb" transform="translate(${botX*60+30},${botY*60+30}) rotate(${angles[botDir]})">
+    <circle cx="0" cy="0" r="22" fill="#0d7a5f" stroke="#12263a" stroke-width="3"/>
+    <circle cx="0" cy="-8" r="5" fill="#fff"/><circle cx="0" cy="-8" r="2" fill="#000"/>
+    <path d="M-8 8 Q0 16 8 8" stroke="#fff" stroke-width="3" fill="none"/>
+    <polygon points="0,-24 -6,-16 6,-16" fill="#ffc933"/>
+  </g>`;
+  svg.innerHTML=h;
+}
+
+function renderProg(){
+  const box=$('#prog'); box.innerHTML='';
+  if(!gProg.length){ box.innerHTML='<p class="sub">Arrastra o toca bloques para agregarlos aquí.</p>'; return; }
+  gProg.forEach((b,i)=>{
+    if(b.type==='rep'){
+      const d=mk('div','blk rep'+(repActive===i?' active':''));
+      d.innerHTML=`<div class="rh">🔁 Repetir <input type="number" value="${b.n}" min="2" max="9" class="mini" data-i="${i}"> veces <button class="x" data-del="${i}">✕</button></div><div class="rb"></div>`;
+      const sub=$('.rb',d);
+      if(!b.sub.length) sub.innerHTML='<em>Toca un bloque para ponerlo dentro de este bucle</em>';
+      else b.sub.forEach((sb,j)=>{
+        const sd=mk('div','blk '+sb);
+        sd.innerHTML=`<span>${bLabel(sb)}</span><button class="x" data-delsub="${i}_${j}">✕</button>`;
+        sub.append(sd);
+      });
+      d.onclick=(e)=>{if(!e.target.closest('button')&&!e.target.closest('input')){repActive=repActive===i?null:i;renderProg()}};
+      box.append(d);
+    }else{
+      const d=mk('div','blk '+b.type);
+      d.innerHTML=`<span>${bLabel(b.type)}</span><button class="x" data-del="${i}">✕</button>`;
+      box.append(d);
+    }
+  });
+  $('#tgt').textContent=repActive!==null?'👉 Agregando bloques DENTRO del Repetir':'👉 Agregando bloques al programa principal';
+}
+
+function bLabel(t){
+  if(t==='f') return '⬆ Avanzar';
+  if(t==='l') return '↺ Girar izquierda';
+  if(t==='r') return '↻ Girar derecha';
+}
+
+$('.pal').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  const type=b.dataset.b;
+  if(type==='rep'){
+    gProg.push({type:'rep',n:2,sub:[]});
+    repActive=gProg.length-1;
+  }else{
+    if(repActive!==null && gProg[repActive] && gProg[repActive].type==='rep'){
+      gProg[repActive].sub.push(type);
+    }else{
+      gProg.push({type});
+    }
+  }
+  renderProg();
+});
+
+$('#prog').addEventListener('click',e=>{
+  if(e.target.dataset.del!==undefined){
+    const i=+e.target.dataset.del;
+    gProg.splice(i,1); if(repActive===i) repActive=null;
+    renderProg();
+  }else if(e.target.dataset.delsub!==undefined){
+    const [i,j]=e.target.dataset.delsub.split('_').map(Number);
+    gProg[i].sub.splice(j,1);
+    renderProg();
+  }
+});
+
+$('#prog').addEventListener('change',e=>{
+  if(e.target.classList.contains('mini')){
+    const i=+e.target.dataset.i;
+    gProg[i].n=clamp(+e.target.value,2,9);
+  }
+});
+
+$('#gClear').addEventListener('click',()=>{gProg=[];repActive=null;renderProg()});
+$('#gReset').addEventListener('click',()=>{
+  const lv=LEVELS[curLv]; botX=lv.x; botY=lv.y; botDir=lv.dir;
+  renderGrid(); $('#gMsg').className='msg'; $('#gMsg').textContent='Robi volvió al inicio.';
+});
+
+$('#gRun').addEventListener('click',async ()=>{
+  if(gBusy) return; gBusy=true;
+  const lv=LEVELS[curLv]; botX=lv.x; botY=lv.y; botDir=lv.dir; renderGrid();
+
+  // Aplanar instrucciones
+  let queue=[];
+  gProg.forEach(b=>{
+    if(b.type==='rep'){
+      for(let k=0;k<b.n;k++) b.sub.forEach(st=>queue.push(st));
+    }else queue.push(b.type);
+  });
+
+  if(!queue.length){
+    $('#gMsg').className='msg bad'; $('#gMsg').textContent='Agrega bloques antes de ejecutar.';
+    gBusy=false; return;
+  }
+
+  const map=lv.map, rows=map.length, cols=map[0].length;
+  let crashed=false;
+
+  for(let cmd of queue){
+    if(cmd==='l') botDir=(botDir+3)%4;
+    else if(cmd==='r') botDir=(botDir+1)%4;
+    else if(cmd==='f'){
+      let nx=botX, ny=botY;
+      if(botDir===0) ny--;
+      else if(botDir===1) nx++;
+      else if(botDir===2) ny++;
+      else if(botDir===3) nx--;
+
+      if(nx<0||nx>=cols||ny<0||ny>=rows||map[ny][nx]===1){
+        crashed=true; break;
+      }
+      botX=nx; botY=ny;
+    }
+    renderGrid();
+    await sleep(400);
+  }
+
+  if(crashed){
+    $('#gMsg').className='msg bad';
+    $('#gMsg').textContent='💥 ¡Ouch! Robi se chocó contra un obstáculo o se salió del mapa. Revisa tu programa y depúralo.';
+  }else if(map[botY][botX]===2){
+    $('#gMsg').className='msg good';
+    $('#gMsg').textContent='🎉 ¡Misión cumplida! Robi llegó a la estrella ⭐.';
+    if(curLv<LEVELS.length-1) $('#gNext').hidden=false;
+    award('bloques','¡Completaste el reto de programación con bloques!');
+  }else{
+    $('#gMsg').className='msg';
+    $('#gMsg').textContent='Robi terminó su recorrido pero no llegó a la estrella. ¡Agrega más bloques!';
+  }
+  gBusy=false;
+});
+
+$('#gNext').addEventListener('click',()=>{if(curLv<LEVELS.length-1) loadLv(curLv+1)});
+loadLv(0);
+
+/* ============ SENSORES ============ */
+$('#eRange').addEventListener('input',e=>{
+  const d=+e.target.value; $('#eD').textContent=d;
+  $('#eWall').setAttribute('x',80+d*1.8);
+  $('#eLine').setAttribute('x2',80+d*1.8);
+  const timeMs=(d*2/34.3).toFixed(1);
+  $('#eRead').textContent=`Tiempo ida y vuelta: ${es(timeMs)} ms (${d} cm)`;
+});
+$('#eRange').dispatchEvent(new Event('input'));
+
+let bSpeed=1;
+$$('[data-sp]').forEach(b=>b.addEventListener('click',()=>{   bSpeed=+b.dataset.sp;   $$
+('[data-sp]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+}));
+$('#bRange').addEventListener('input',e=>$('#bD').textContent=e.target.value);
+
+$('#bGo').addEventListener('click',async ()=>{
+  const thr=+$('#bRange').value;
+  $('#bThr').style.right=(thr/100*80)+'%';
+  const bot=$('#bBot'); bot.style.transition='none'; bot.style.left='0%';
+  await sleep(50);
+  const speeds=[2.5, 1.5, 0.8]; // duraciones
+  bot.style.transition=`left ${speeds[bSpeed]}s linear`;
+  bot.style.left=(100-thr-12)+'%';
+
+  await sleep(speeds[bSpeed]*1000);
+  const stopD=thr;
+  $('#bRead').textContent=`Frenó a ${stopD} cm`;
+  if(stopD<15){
+    $('#bMsg').className='msg bad'; $('#bMsg').textContent='💥 ¡Chocó! Frenaste muy tarde para esa velocidad.';
+  }else if(stopD>50){
+    $('#bMsg').className='msg'; $('#bMsg').textContent='Frenó muy lejos de la pared. ¡Puedes acercarte más!';
+  }else{
+    $('#bMsg').className='msg good'; $('#bMsg').textContent='🎯 ¡Frenado perfecto! El sensor salvó a Robi.';
+    award('sensor','¡Dominaste el sensor de ultrasónico!');
+  }
+});
+
+/* ============ CODE ARDUINO ============ */
+const CODE_LINES=[
+ {t:'void setup() {', e:'setup() corre UNA SOLA VEZ cuando enciendes tu Arduino. Sirve para configurar.'},
+ {t:'  pinMode(13, OUTPUT);', e:'pinMode dice que el pin 13 enviará electricidad (OUTPUT/Salida) para encender el LED.'},
+ {t:'}', e:'Cierra la función setup.'},
+ {t:'void loop() {', e:'loop() se repite PARA SIEMPRE en un bucle infinito mientras Arduino tenga energía.'},
+ {t:'  digitalWrite(13, HIGH);', e:'digitalWrite(13, HIGH) manda 5V al pin 13: ¡el LED SE ENCIENDE!'},
+ {t:'  delay(1000);', e:'delay(1000) hace que el microcontrolador espere 1000 milisegundos (1 segundo).'},
+ {t:'  digitalWrite(13, LOW);', e:'digitalWrite(13, LOW) quita la energía del pin 13: el LED SE APAGA.'},
+ {t:'  delay(1000);', e:'delay(1000) espera otro segundo apagado antes de volver a empezar loop().'},
+ {t:'}', e:'Fin de loop(). ¡Ahora vuelve arriba a comenzar loop() otra vez!'}
+];
+
+const codeEl=$('#code'); CODE_LINES.forEach((l,i)=>{   const s=mk('span','ln',l.t);   s.onclick=()=>{     $$('.ln',codeEl).forEach(x=>x.classList.remove('sel'));
+    s.classList.add('sel');
+    $('#lnExp').textContent=l.e;
+    award('arduino','¡Exploraste el código de Arduino!');
+  };
+  codeEl.append(s);
+});
+
+let arOnMs=1000, arOffMs=1000, arTimer=null;
+function arRun(){
+  clearTimeout(arTimer);
+  const glow=$('#arGlow'), led=$('#arLed');
+  function step(state){
+    if(state){
+      glow.style.opacity='1'; led.setAttribute('fill','#ff3333');
+      arTimer=setTimeout(()=>step(false), arOnMs);
+    }else{
+      glow.style.opacity='0'; led.setAttribute('fill','#8a3b3b');
+      arTimer=setTimeout(()=>step(true), arOffMs);
+    }
+  }
+  step(true);
+}
+
+$('#arOn').addEventListener('input',e=>{
+  arOnMs=+e.target.value; $('#arOnV').textContent=arOnMs;
+  $('#arRead').textContent=`Encendido: ${arOnMs} ms | Apagado: ${arOffMs} ms`;
+  arRun();
+});
+$('#arOff').addEventListener('input',e=>{
+  arOffMs=+e.target.value; $('#arOffV').textContent=arOffMs;
+  $('#arRead').textContent=`Encendido: ${arOnMs} ms | Apagado: ${arOffMs} ms`;
+  arRun();
+});
+$$('[data-p]').forEach(b=>b.addEventListener('click',()=>{
+  const [on,off]=b.dataset.p.split(',').map(Number);
+  arOnMs=on; arOffMs=off;
+  $('#arOn').value=on; $('#arOnV').textContent=on;
+  $('#arOff').value=off; $('#arOffV').textContent=off;
+  $('#arRead').textContent=`Encendido: ${arOnMs} ms | Apagado: ${arOffMs} ms`;
+  arRun();
+}));
+arRun();
+
+/* ============ ROBÓTICA ABIERTA ============ */
+const FLIPS=[
+ {f:'0. Usar', b:'Libertad de usar el programa o diseño para cualquier propósito, sin pedir permiso.'},
+ {f:'1. Estudiar', b:'Libertad de ver cómo funciona por dentro (el código fuente o los planos) y aprender de él.'},
+ {f:'2. Compartir', b:'Libertad de hacer copias y repartirlas para ayudar a tus amigos y comunidad.'},
+ {f:'3. Mejorar', b:'Libertad de modificarlo, hacerlo mejor y publicar tus mejoras para beneficio de todos.'}
+];
+let flipCount=0;
+const flipsBox=$('#flips');
+FLIPS.forEach(item=>{
+  const d=mk('div','flip');
+  d.innerHTML=`<div class="front">${item.f}</div><div class="back">${item.b}</div>`;
+  d.onclick=()=>{
+    if(!d.classList.contains('on')){
+      d.classList.add('on'); flipCount++;
+      $('#flipMsg').textContent=flipCount===4?'🎉 ¡Descubriste las 4 libertades!':'Faltan '+(4-flipCount)+' cartas por descubrir.';
+      if(flipCount===4) award('abierta','¡Conociste la robótica abierta!');
+    }
+  };
+  flipsBox.append(d);
+});
+
+const BOARDS=[
+ {q:'📱 Quiero hacer un reloj inteligente o un dispositivo conectado a Wi-Fi', a:'💡 Usa **ESP32**: tiene Wi-Fi, Bluetooth y mucha potencia en un chip barato.'},
+ {q:'🎓 Quiero aprender robótica desde cero con sensores y luces en una placa fácil', a:'💡 Usa **BBC micro:bit**: trae pantalla LED, botones y sensores integrados.'},
+ {q:'🚦 Quiero controlar luces, motores y sensores de forma sencilla sin internet', a:'💡 Usa **Arduino Uno**: es el clásico ideal para empezar en electrónica.'}
+];
+const bQ=$('#boardQ');
+BOARDS.forEach(b=>{
+  const btn=mk('button','btn alt sm',b.q);
+  btn.onclick=()=>{
+    $('#boardA').className='msg good';
+    $('#boardA').textContent=b.a.replace(/\*\*/g,'');
+  };
+  bQ.append(btn);
+});
+
+$$('.pl').forEach(ch=>{   ch.addEventListener('change',()=>{     const all=$$
+('.pl').every(c=>c.checked);
+    if(all){
+      $('#plMsg').className='msg good';
+      $('#plMsg').textContent='🤝 ¡Bienvenido a la comunidad abierta! Tu compromiso ayuda a crear un mundo mejor.';
+    }else{
+      $('#plMsg').className='msg';
+      $('#plMsg').textContent='Marca las tres promesas.';
+    }
+  });
+});
+
+/* ============ GLOSARIO Y SEGURIDAD ============ */
+const GLOS=[
+ {w:'LED', d:'Diodo Emisor de Luz. Una lucecita eficiente que solo deja pasar electricidad en un sentido.'},
+ {w:'Protoboard', d:'Placa de pruebas con orificios interconectados por dentro para armar circuitos sin soldar.'},
+ {w:'Microcontrolador', d:'Un pequeño computador en un solo chip que ejecuta un programa para controlar hardware.'},
+ {w:'Sensor', d:'Componente que mide algo del entorno (luz, distancia, temperatura) y lo convierte en datos.'},
+ {w:'Actuador', d:'Pieza que produce un efecto en el mundo físico, como un motor, luz o altavoz.'},
+ {w:'Bucle', d:'Instrucción de programación que repite un bloque de código varias veces o indefinidamente.'},
+ {w:'Hardware Libre', d:'Diseños de electrónica cuyos planos y especificaciones son públicos para que cualquiera los use.'}
+];
+
+function renderGl(filter=''){
+  const box=$('#gl'); box.innerHTML='';
+  GLOS.filter(g=>g.w.toLowerCase().includes(filter.toLowerCase())||g.d.toLowerCase().includes(filter.toLowerCase()))
+      .forEach(g=>{
+        box.append(mk('dt',null,g.w));
+        box.append(mk('dd',null,g.d));
+      });
+}
+$('#glQ').addEventListener('input',e=>renderGl(e.target.value));
+renderGl();
+
+const SAFE_CASES=[
+ {t:'Usar una pila AA o de 9V para probar un LED.', ok:true},
+ {t:'Meter un cable dentro del tomacorriente de la pared.', ok:false},
+ {t:'Tocar componentes con las manos mojadas.', ok:false},
+ {t:'Desconectar la energía antes de cambiar cables.', ok:true},
+ {t:'Usar una resistencia siempre para proteger un LED.', ok:true},
+ {t:'Dejar cables pelados tocándose entre sí sin querer (cortocircuito).', ok:false}
+];
+let safeOk=0;
+const safeBox=$('#safe');
+SAFE_CASES.forEach((c,i)=>{
+  const d=mk('div','sortc');
+  d.innerHTML=`<b>${c.t}</b><div class="opts"><button class="okb">Seguro ✅</button><button class="nob">Peligro ⚠️</button></div>`;
+  $('.okb',d).onclick=()=>checkSafe(i,true,d);$('.nob',d).onclick=()=>checkSafe(i,false,d);
+  safeBox.append(d);
+});
+
+function checkSafe(idx,ans,el){
+  if(ans===SAFE_CASES[idx].ok){
+    el.classList.add('ok'); $('.opts',el).innerHTML='<span class="sub">✅ ¡Correcto!</span>';
+    safeOk++;
+    if(safeOk===SAFE_CASES.length){
+      $('#safeMsg').className='msg good';
+      $('#safeMsg').textContent='🎉 ¡Demostraste que sabes trabajar con seguridad!';
+      award('casa','¡Completaste el reto de seguridad!');
+    }
+  }else{
+    el.classList.add('no'); setTimeout(()=>el.classList.remove('no'),400);
+    $('#safeMsg').className='msg bad';
+    $('#safeMsg').textContent='⚠️ Piensa bien: ¿es seguro o peligroso para ti o los componentes?';
+  }
+}
+
+/* ============ QUIZ ============ */
+const QUIZ=[
+ {q:'¿Cuáles son los tres pasos del ciclo de un robot?', o:['Comer, dormir, jugar','Sentir, pensar, actuar','Cargar, encender, apagar'], a:1},
+ {q:'¿Qué componente frena la electricidad para proteger a un LED?', o:['Pila','Resistencia','Interruptor'], a:1},
+ {q:'¿Para qué sirve la protoboard?', o:['Para soldar circuitos permanentemente','Para armar circuitos probando sin soldar','Para cargar baterías'], a:1},
+ {q:'En la protoboard, ¿cómo están conectados los 5 agujeros de una columna?', o:['Unidos por dentro por una tira de metal','No están conectados','Conectados con el riel positivo'], a:0},
+ {q:'¿Qué es un algoritmo?', o:['Un robot con ruedas','Una lista de pasos ordenados para resolver un problema','Un tipo de pila'], a:1},
+ {q:'¿Cómo mide la distancia el sensor ultrasónico?', o:['Con una regla láser','Lanzando un sonido y midiendo el tiempo del eco','Midiendo la temperatura'], a:1},
+ {q:'¿Qué función de Arduino se ejecuta una sola vez al encender?', o:['loop()','setup()','delay()'], a:1},
+ {q:'¿Qué significa que un proyecto sea de «código abierto» (open source)?', o:['Que es secreto','Que sus planos y código son públicos para todos','Que no usa electricidad'], a:1},
+ {q:'¿Qué unidad se usa para medir el tiempo en delay() de Arduino?', o:['Segundos','Milisegundos (ms)','Minutos'], a:1},
+ {q:'¿Qué debes hacer antes de modificar las conexiones de un circuito real?', o:['Desconectar la energía o pila','Echarle agua','Gritar fuerte'], a:0}
+];
+
+let qAns={};
+function renderQuiz(){
+  const box=$('#qBox'); box.innerHTML='';
+  QUIZ.forEach((item,i)=>{
+    const d=mk('div','card',`<p><b>${i+1}. ${item.q}</b></p>`);
+    item.o.forEach((opt,j)=>{
+      const btn=mk('button','qopt',opt);
+      if(qAns[i]!==undefined){
+        if(j===item.a) btn.classList.add('right');
+        else if(j===qAns[i]) btn.classList.add('wrong');
+        btn.disabled=true;
+      }
+      btn.onclick=()=>{
+        qAns[i]=j; renderQuiz(); checkQuizScore();
+      };
+      d.append(btn);
+    });
+    box.append(d);
+  });
+}
+
+function checkQuizScore(){
+  const answered=Object.keys(qAns).length;
+  if(answered===QUIZ.length){
+    let score=0;
+    QUIZ.forEach((q,i)=>{if(qAns[i]===q.a) score++});
+    if(score>=7){
+      $('#diploma').hidden=false;
+      $('#dipDate').textContent='Fecha: '+new Date().toLocaleDateString('es-ES');
+      award('quiz','¡Aprobaste el Reto Final y obtuviste tu diploma!');
+    }
+  }
+}
+renderQuiz();
+
+/* ============ INICIALIZACIÓN ============ */
 paint();
 </script>
 </body>
